@@ -1,0 +1,46 @@
+PlayerAddedManager
+
+local character = script.Parent
+local humanoid = character:WaitForChild("Humanoid")
+local RS = game:GetService("ReplicatedStorage")
+local PS = game:GetService('Players')
+
+local Sword = RS:WaitForChild("Sword")
+local clonedSword = Sword:Clone()
+clonedSword.Name = ('Sword')
+clonedSword.Parent = script.Parent
+
+
+
+local function childAdded(object)
+	if object:HasTag('Weapon') then
+		local handle = object:FindFirstChild('Handle')
+		if handle then
+			local rightArm
+			if humanoid.RigType == Enum.HumanoidRigType.R15 then
+				rightArm = character:FindFirstChild('Right Hand')
+			else
+				rightArm = character:FindFirstChild('Right Arm')
+			end
+			if rightArm then
+				local rightGrip = rightArm:FindFirstChild('RightGrip')
+				if rightGrip then
+					rightGrip.Enabled = false
+					local motor = Instance.new("Motor6D")
+					motor.Part0 = rightArm
+					motor.Part1 = handle
+					motor.C0 = CFrame.new(0, -rightArm.Size.Y/2.0)*CFrame.Angles(-math.pi/2,0,0)
+					motor.C1 = object.Grip
+					motor.Name = 'ToolGrip'
+					motor.Parent = rightArm
+					repeat
+						rightGrip.AncestryChanged:Wait()
+					until  rightGrip ~= rightArm
+					motor:Destroy()
+				end
+			end
+		end
+	end
+end
+
+character.ChildAdded:Connect(childAdded)
