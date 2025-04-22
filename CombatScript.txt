@@ -154,7 +154,7 @@ function Stun(hitPlayer, stunTime)
 	if enemyData.combatStatus.Value ~= stunVal then
 		enemyData.combatStatus.Value = stunVal
 		task.wait(stunTime)
-		combatStatus.Value = nil
+		enemyData.combatStatus.Value = "Idle"
 	end
 end
 
@@ -247,9 +247,12 @@ end
 
 function Kill(victim, cause, victimData)
 	print(tostring(victim))
-	local victimChar = victim.Character:PivotTo(CFrame.new(0, 0, 0))
-	if victimChar then print("victimChar is found: " .. tostring(victimChar)) end
-	print(tostring(victimData))
-	print(tostring(victimData.hp.Value))
-	victimData.hp.Value = victimData.maxhp
+	local victimChar = victim.Character
+	if victimChar then 
+		print("victimChar is found: " .. tostring(victimChar)) 
+		victimChar:PivotTo(CFrame.new(0, 0, 0))
+		print(tostring(victimData))
+		print(tostring(victimData.hp.Value))
+		victimData.hp.Value = victimData.maxhp
+	end
 end
