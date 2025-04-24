@@ -1,0 +1,124 @@
+local UIS = game:GetService("UserInputService")
+local PS = game:GetService("Players")
+local combatComm = game.ReplicatedStorage:WaitForChild("CombatComm")
+local highlightComm = game.ReplicatedStorage:WaitForChild("HighlightEvent")
+local playerDataHandler = require(game.ReplicatedStorage.PlayerDataHandler)
+local getPlayerData = game.ReplicatedStorage:WaitForChild("GetPlayerData")
+
+if not playerData then
+	repeat
+		task.wait(1)
+		playerData = getPlayerData:InvokeServer("PlayerData")
+		if playerData then 
+			--("pluh!!")
+		else
+			print("fuck you")
+		end
+	until playerData
+end
+
+UIS.InputBegan:Connect(function(input, processed)
+	
+	local player = PS.LocalPlayer
+	local data = playerData
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:FindFirstChild("Humanoid") or character:WaitForChild("Humanoid")
+	local combatStatus = data.combatStatus
+	local isSwordEquipped = data.isSwordEquipped
+
+	if not processed and (input.KeyCode == Enum.KeyCode.One) then
+		
+		ToggleSword()
+		
+	end
+	
+	if combatStatus.Value == "Stunned" then
+		return
+	elseif data.isSwordEquipped then
+		if not processed and (input.KeyCode == Enum.KeyCode.F) then
+			data.isKeyHeld = true
+			--print("sadf")
+			combatComm:FireServer("parry", data.isKeyHeld)
+		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+			print("m1 was pressed")
+			combatComm:FireServer("m1")
+		end
+	
+	end
+
+end)
+
+UIS.InputEnded:Connect(function(input)
+	local data = playerData
+	if not data.isSwordEquipped then return end
+	if input.KeyCode == Enum.KeyCode.F then
+		data.isKeyHeld = false
+		combatComm:FireServer("endBlock", data.isKeyHeld)
+	end
+end)
+
+function ToggleSword()
+	local data = playerData
+	if data.isSwordEquipped == false then
+		data.isSwordEquipped = true
+		print(tostring(data.isSwordEquipped))
+	elseif data.isSwordEquipped == true then
+		data.isSwordEquipped = false
+		print(tostring(data.isSwordEquipped))
+	end
+end
+
+function GiveHighlight(instanceToGiveHighlight, highlightColour)
+	local newHighlight = Instance.new("Highlight", instanceToGiveHighlight)
+	newHighlight.FillTransparency = .6
+	newHighlight.FillColor = highlightColour
+	
+	function DestroyHighlight()
+		newHighlight:Destroy()
+		local possibleHighlight = instanceToGiveHighlight:FindFirstChild("Highlight", true)
+		if possibleHighlight then
+			possibleHighlight:Destroy()
+		else
+			return
+		end
+	end
+end
+
+
+highlightComm.OnClientEvent:Connect(function(action)
+	
+	local player = PS.LocalPlayer
+	
+	local character = player.Character
+	
+	--print("highlight comm was reached")
+	if action == "Parrying" then
+		GiveHighlight(character, Color3.new(1, 0.858824, 0.054902))
+	elseif action == "Blocking" then
+		GiveHighlight(character, Color3.new(0.270588, 0.317647, 1))
+	elseif action == "Attacking" then
+		GiveHighlight(character, Color3.new(1, 0.168627, 0.184314))
+	elseif action == "DestroyHighlight" then
+		DestroyHighlight()
+	else
+		return
+	end
+
+	
+end)
+
+--[[if typeof(player) == "Instance" and player:IsA("Player") then
+		
+		local character = player.Character
+		local humanoid = character:WaitForChild("Humanoid")
+
+		if action == "parrying" then
+			GiveHighlight(humanoid, Color3.new(1, 0.858824, 0.054902))
+		elseif action == "blocking" then
+			GiveHighlight(humanoid, Color3.new(0.270588, 0.317647, 1))
+		elseif action == "attacking" then
+			GiveHighlight(humanoid, Color3.new(1, 0.168627, 0.184314))
+		else
+			return
+		end
+	end]]
