@@ -1,5 +1,3 @@
-CombatScript
-
 local UIS = game:GetService("UserInputService")
 local PS = game:GetService("Players")
 local combatComm = game.ReplicatedStorage:WaitForChild("CombatComm")
@@ -14,7 +12,7 @@ local getPlayerData = Instance.new("RemoteFunction", game.ReplicatedStorage)
 getPlayerData.Name = "GetPlayerData"
 
 PS.PlayerAdded:Connect(function(player)
-	
+
 	playerDataHandler:InitializePlayerData(player)
 	local data = playerDataHandler:GetPlayerData(player)
 	if not data then
@@ -22,7 +20,7 @@ PS.PlayerAdded:Connect(function(player)
 	else
 		warn("playerdata WAS found ;3")
 	end
-	
+
 end)
 
 PS.PlayerRemoving:Connect(function(player)
@@ -96,22 +94,19 @@ function Attack(player)
 	local animationTrack = animator:LoadAnimation(animation)
 	animationTrack.Priority = Enum.AnimationPriority.Action4
 	animationTrack:Play()
-	
+
 	local hitbox = data.hitbox
-	
+
 	local RayOrigin = hitbox.Position
 	local RayDirection = hitbox.CFrame.LookVector
 	local RayDistance = weaponRange
 
 	local rParams = RaycastParams.new()
-	rParams.FilterType = Enum.RaycastFilterType.Exclude
-	local playerSword = hitbox.Parent:FindFirstChild("Sword")
-	local playerSwordHandle = playerSword:WaitForChild("Handle")
-	rParams.FilterDescendantsInstances = {playerSwordHandle, player.Character}
 
 	local RayResult = workspace:Raycast(RayOrigin, RayDirection * RayDistance, rParams)
 
-	if RayResult and RayResult.Instance then
+	if RayResult and RayResult.Instance:HasTag("Hitbox") then
+		--print("rayhit landed")
 		local rayHit = RayResult.Instance
 
 		--[[local hitPlayerConfirm = rayHit:FindFirstAncestorOfClass("Player")
@@ -120,14 +115,14 @@ function Attack(player)
 		local hitPlayer = PS:GetPlayerFromCharacter(rayHit:FindFirstAncestorOfClass("Model"))
 
 		local finalDamage = data.weaponDamage
-		
+
 		if hitPlayer and hitPlayer ~= player then
 			local enemyData = playerDataHandler:GetPlayerData(hitPlayer)
-			
+
 			if enemyData then print(tostring(enemyData) .. " That should be it") end
-			
+
 			warn(tostring(hitPlayer) .. ", " .. tostring(rayHit), tostring(rayHit.Parent))
-			
+
 			if rayHit.Name == "Hitbox" then
 				print(tostring(enemyData))
 				if enemyData.combatStatus and enemyData.combatStatus.Value == parryingVal then
@@ -146,6 +141,8 @@ function Attack(player)
 			warn("hitPlayer was not found, instead the ray hit: " .. tostring(rayHit))
 			return
 		end
+	else
+		print("ray didn't hit a hitbox")
 	end
 end
 
@@ -168,25 +165,25 @@ combatComm.OnServerEvent:Connect(function(player, action, isKeyHeld)
 	else
 		--print(player.Name .. " released the key.")
 	end
-	
+
 	if action == "parry" then
-		
+
 		StartParrying(player, isKeyHeld)
-		
+
 	elseif action == "roll" then
-		
+
 	elseif action == "m1" then
-		
+
 		StartAttacking(player)
-		
+
 	elseif action == "endBlock" then
-		
+
 		if data.CombatStatus == "Parrying" then
 			return
 		else
 			StopBlocking(player)
 		end
-	
+
 	end
 end)
 
@@ -209,11 +206,11 @@ function StartParrying(player, isKeyHeld)
 end
 
 function StartBlocking(player, isKeyHeld)
-	
+
 	local data = playerDataHandler:GetPlayerData(player)
 	if not data or data.combatStatus.Value == "Attacking" or data.combatStatus.Value == "Parrying" or data.combatStatus.Value == "Blocking" then
 		return
- 	else
+	else
 		data.combatStatus.Value = blockingVal
 		highlightEvent:FireClient(player, blockingVal)
 	end
