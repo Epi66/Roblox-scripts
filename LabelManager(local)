@@ -1,0 +1,31 @@
+PS = game:GetService("Players")
+
+local healthBarBG = script.Parent.BGHealth or script.Parent:WaitForChild("BGHealth")
+local healthBar = healthBarBG.HealthBar or healthBarBG:WaitForChild("HealthBar")
+local hpLabel = healthBar.TextLabelHP or healthBar:WaitForChild("TextLabelHP")
+
+
+local postureBarBG = script.Parent.BGPosture or script.Parent:WaitForChild("BGPosture")
+local postureBar = postureBarBG.PostureBar or PostureBarBG:WaitForChild("PostureBar")
+local postureLabel = postureBar.TextLabelPosture
+
+local player = PS.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character.Humanoid or character:WaitForChild("Humanoid")
+local hpValue = humanoid.HP or humanoid:WaitForChild("HP")
+local postureValue = humanoid.Posture or humanoid:WaitForChild("Posture")
+
+hpLabel.Text = (hpValue.Value .. "% HEALTH")
+postureLabel.Text = (postureValue.Value .. "% POSTURE")
+
+hpValue:GetPropertyChangedSignal("Value"):Connect(function()
+	hpLabel.Text = (hpValue.Value .. "% HEALTH")
+	--healthBar.Size = UDim2.new(0, hpValue.Value / 100, 0, 1)
+	healthBar.Size = UDim2.new(hpValue.Value / 100, 0, 1, 0)
+end)
+
+postureValue:GetPropertyChangedSignal("Value"):Connect(function()
+	postureLabel.Text = (postureValue.Value .. "% POSTURE")
+	--healthBar.Size = UDim2.new(0, hpValue.Value / 100, 0, 1)
+	postureBar.Size = UDim2.new(postureValue.Value / 100, 0, 1, 0)
+end)
