@@ -1,0 +1,93 @@
+local PlayerDataHandler = {}
+
+playerData = {}
+
+function PlayerDataHandler:InitializePlayerData(player)
+	
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+
+	playerData[player.UserId] = {
+
+		player = player,
+		humanoid = character:FindFirstChild("Humanoid") or character:WaitForChild("Humanoid"),
+		hp = nil,
+		maxhp = 100,
+		posture = nil,
+		maxPosture = 100,
+		weaponDamage = 10,
+		combatStatus = nil,
+		hitbox = nil,
+		weld = nil,
+		isKeyHeld = false,
+		isSwordEquipped = false,
+
+	}
+
+	local humanoid = playerData[player.UserId].humanoid
+
+	local hpValue = Instance.new("IntValue", humanoid)
+	hpValue.Name = "HP"
+	hpValue.Value = 100
+	playerData[player.UserId].hp = hpValue
+
+	local postureValue = Instance.new("IntValue", humanoid)
+	postureValue.Name = "Posture"
+	postureValue.Value = 0
+	playerData[player.UserId].posture = postureValue
+
+	local combatStatusValue = Instance.new("StringValue")
+	combatStatusValue.Name = "CombatStatus"
+	combatStatusValue.Parent = humanoid
+	combatStatusValue.Value = "Idle"
+	playerData[player.UserId].combatStatus = combatStatusValue
+	playerData[player.UserId].combatStatus.Value = combatStatusValue.Value
+	
+
+	local hitboxValue = Instance.new("Part", character)
+	hitboxValue.Name = "Hitbox"
+	hitboxValue.Size = Vector3.new(5, 5.5, 4)
+	hitboxValue.Massless = true
+	hitboxValue.Transparency = .6
+	hitboxValue.Anchored = false
+	hitboxValue.CanTouch = true
+	hitboxValue.CanCollide = false
+	hitboxValue:AddTag("Hitbox")
+	playerData[player.UserId].hitbox = hitboxValue
+
+	local weldvalue = Instance.new("Weld")
+	weldvalue.Part0 = humanoidRootPart
+	weldvalue.Part1 = playerData[player.UserId].hitbox
+	weldvalue.Parent = playerData[player.UserId].hitbox
+	playerData[player.UserId].weld = humanoidRootPart
+
+	if playerData[player.UserId].combatStatus then
+		print("CombatStatus was found. Parent: " ..  tostring(playerData[player.UserId].combatStatus.Parent))
+	elseif not playerData[player.UserId].combatStatus then
+		warn("CombatStatus not found for player:" .. player.Name)
+	end
+	
+	return(playerData[player.UserId])
+end
+
+function PlayerDataHandler:CleanUpPlayerData(player)
+	if playerData[player.UserId] then
+		print("Removing player data for:", player.UserId)
+		playerData[player.UserId] = nil
+	else
+		warn("Player data does not exist for: " .. player.Name)
+	end
+end
+
+
+
+function PlayerDataHandler:GetPlayerData(player)
+	if not player or typeof(player) ~= "Instance" or not player:IsA("Player") then
+		warn("Invalid player object passed.")
+		return nil
+	end
+	return(playerData[player.UserId]) 
+end
+
+return PlayerDataHandler
